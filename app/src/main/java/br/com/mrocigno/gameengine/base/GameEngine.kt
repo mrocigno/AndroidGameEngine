@@ -1,7 +1,7 @@
 package br.com.mrocigno.gameengine.base
 
 import android.os.Bundle
-import android.view.WindowManager
+import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import androidx.appcompat.app.AppCompatActivity
 import br.com.mrocigno.gameengine.tools.GameLoop
 import br.com.mrocigno.gameengine.R
@@ -14,17 +14,17 @@ abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
     var scene: GameScene? = null
         set(value) {
             field = value?.apply {
-                game_canvas.drawables.add(this)
-                gamePad?.gamePadObservers?.addAll(getControllable(this.components))
+                game_canvas.scene = value
+                gamePad?.gamePadObservers?.addAll(getControllable(components))
             }
         }
 
     private fun getControllable(components: List<GameDrawable>): Collection<GamePad.OnMove> =
-        components.filter { it is GamePad.OnMove }.map { it as GamePad.OnMove }
+        components.filterIsInstance(GamePad.OnMove::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        window.setFlags(FLAG_LAYOUT_NO_LIMITS, FLAG_LAYOUT_NO_LIMITS)
         GameLoop(::onUpdate).start()
         scene = initialScene
     }

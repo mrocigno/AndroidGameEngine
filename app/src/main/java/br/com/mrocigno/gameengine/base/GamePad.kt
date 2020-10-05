@@ -1,6 +1,7 @@
 package br.com.mrocigno.gameengine.base
 
-import android.util.Log
+import android.view.MotionEvent
+import android.view.View
 import androidx.annotation.CallSuper
 import kotlin.math.atan
 import kotlin.math.min
@@ -82,9 +83,10 @@ abstract class GamePad(
         }
     }
 
+    abstract fun onTouchListener(view: View, event: MotionEvent)
+
     interface OnMove {
         fun onMove(radian: Float, velocity: Float, axis: GamePadAxis)
-
         fun onRelease()
     }
 }

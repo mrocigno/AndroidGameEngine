@@ -18,12 +18,13 @@ class MainActivity : GameEngine() {
 
 class TestScene : GameScene() {
 
-    init {
-        Log.d("GameEngine", "bbbbbbbb")
-    }
-
     override val components = listOf(
-        Persona()
+        Persona(),
+        Square().apply {
+            setOnClickListener {
+                this.expandAnimation()
+            }
+        }
     )
 
     override fun draw(canvas: Canvas) {

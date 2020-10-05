@@ -17,17 +17,23 @@ import kotlin.math.sqrt
 
 class Persona : GameDrawable(), GamePad.OnMove {
 
-    var positionX = 500f.toDp()
-    var positionY = 200f.toDp()
-    var acresX = 0f
-    var acresY = 0f
+    override var positionX = 500f.toDp()
+    override var positionY = 200f.toDp()
+    override var width = 20f.toDp()
+    override var height = 20f.toDp()
 
-    var axis: GamePadAxis = GamePadAxis.NORTHWEST
-
-    val paint = Paint()
+    private var acresX = 0f
+    private var acresY = 0f
+    private var axis: GamePadAxis = GamePadAxis.NORTHWEST
+    private val paint = Paint()
+    private var cyclicalTicker = CyclicalTicker(
+        10,
+        ::onCycleEnd,
+        ::move
+    )
 
     override fun onMove(radian: Float, velocity: Float, axis: GamePadAxis) {
-        val distance = 15f * velocity
+        val distance = 7.5f * velocity
         this.acresX = distance * cos(radian)
         this.acresY = sqrt(distance.pow(2) - acresX.pow(2))
         this.axis = axis
@@ -35,18 +41,10 @@ class Persona : GameDrawable(), GamePad.OnMove {
         registerTick(velocity)
     }
 
-    var lastCyclicalTicker: Ticker? = null
-
     private fun registerTick(velocity: Float) {
         GameLoop.instance?.apply {
             onCycleEnd()
-            lastCyclicalTicker?.let { removeTicker(it) }
-            lastCyclicalTicker = CyclicalTicker(
-                10,
-                ::onCycleEnd,
-                ::move
-            )
-            addTicker(lastCyclicalTicker!!)
+            addTicker(cyclicalTicker)
         }
     }
 
@@ -82,6 +80,5 @@ class Persona : GameDrawable(), GamePad.OnMove {
 
     override fun draw(canvas: Canvas) {
         canvas.drawCircle(positionX, positionY, 20f.toDp(), paint)
-        canvas.drawLine(520f.toDp() + 300f, 150f.toDp(), 520f.toDp() + 300f, 250f.toDp(), paint)
     }
 }

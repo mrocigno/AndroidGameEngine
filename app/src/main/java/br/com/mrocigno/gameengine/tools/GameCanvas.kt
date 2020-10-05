@@ -5,8 +5,8 @@ import android.graphics.Canvas
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import br.com.mrocigno.gameengine.base.GameDrawable
 import br.com.mrocigno.gameengine.base.GameEngine
+import br.com.mrocigno.gameengine.base.GameScene
 
 class GameCanvas @JvmOverloads constructor(
     context: Context,
@@ -14,39 +14,26 @@ class GameCanvas @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    val drawables = mutableListOf<GameDrawable>()
-    private val engine
-        get() = context as GameEngine
+    var scene: GameScene? = null
+
+    private val engine get() = context as GameEngine
 
     init {
-        engine.gamePad?.apply {
-            setOnTouchListener { v, event ->
-                when(event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        v.performClick()
-                        this.setCardinals(event.x, event.y)
-                        drawables.add(this)
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        this.onRelease()
-                        drawables.remove(this)
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        this.onMove()
-                        this.setDirection(event.x, event.y)
-                    }
-                }
-                true
+        setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                v.performClick()
+                scene?.onTouch(event)
             }
+            engine.gamePad?.onTouchListener(v, event)
+            true
         }
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.let {
-            drawables.forEach { e ->
-                e.draw(it)
-            }
+            scene?.draw(canvas)
+            engine.gamePad?.draw(canvas)
         }
     }
 }

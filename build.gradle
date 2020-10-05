@@ -2,13 +2,8 @@
 buildscript {
     ext.kotlin_version = "1.3.72"
     repositories {
-        maven {
-            url "${System.env.REPO_URL}"
-            credentials {
-                username = "${System.env.REPO_USER}"
-                password = "${System.env.REPO_PASSWORD}"
-            }
-        }
+        jcenter()
+        google()
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.0.1"
@@ -21,13 +16,8 @@ buildscript {
 
 allprojects {
     repositories {
-        maven {
-            url "${System.env.REPO_URL}"
-            credentials {
-                username = "${System.env.REPO_USER}"
-                password = "${System.env.REPO_PASSWORD}"
-            }
-        }
+        jcenter()
+        google()
     }
 }
 

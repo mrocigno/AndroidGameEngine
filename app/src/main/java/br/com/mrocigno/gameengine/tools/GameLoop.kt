@@ -13,7 +13,7 @@ class GameLoop(
 
     var lastFpsCount = 0
 
-    private var targetTime = 1000 / 200
+    private var targetTime = 1000 / 60
     private var fps = 0
     private val tickerList = mutableListOf<Ticker>()
 
