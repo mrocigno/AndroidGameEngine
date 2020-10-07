@@ -18,9 +18,7 @@ abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
                 gamePad?.gamePadObservers?.addAll(getControllable(components))
             }
         }
-
-    private fun getControllable(components: List<GameDrawable>): Collection<GamePad.OnMove> =
-        components.filterIsInstance(GamePad.OnMove::class.java)
+    private val tickerList = mutableListOf<GameAnimationController>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +27,14 @@ abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
         scene = initialScene
     }
 
+    fun addTicker(ticker: GameAnimationController) = tickerList.add(ticker)
+    fun removeTicker(ticker: GameAnimationController) = tickerList.remove(ticker)
+
     open fun onUpdate() {
+        tickerList.removeIf { it.handle() }
         game_canvas.invalidate()
     }
+
+    private fun getControllable(components: List<GameDrawable>): Collection<GamePad.OnMove> =
+        components.filterIsInstance(GamePad.OnMove::class.java)
 }

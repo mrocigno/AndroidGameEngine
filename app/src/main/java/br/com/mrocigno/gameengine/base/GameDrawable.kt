@@ -4,7 +4,7 @@ import android.graphics.Canvas
 import android.view.MotionEvent
 import androidx.annotation.CallSuper
 
-abstract class GameDrawable {
+abstract class GameDrawable(protected val engine: GameEngine) {
 
     abstract var positionX: Float
     abstract var positionY: Float

@@ -1,7 +1,6 @@
 package br.com.mrocigno.gameengine.tools
 
 import android.util.Log
-import br.com.mrocigno.gameengine.base.Ticker
 
 class GameLoop(
     private val update: () -> Unit
@@ -15,35 +14,33 @@ class GameLoop(
 
     private var targetTime = 1000 / 60
     private var fps = 0
-    private val tickerList = mutableListOf<Ticker>()
+    private var fps2 = 0
 
     override fun run() {
         isRunning = true
         var lastUpdate = System.currentTimeMillis()
         var fpsLastTime = System.currentTimeMillis()
         while (isRunning) kotlin.runCatching {
-            fps++
             val now = System.currentTimeMillis()
 
-            tickerList.removeIf { it.handle() }
-            update.invoke()
+            fps2++
 
             val delta = (now - lastUpdate) / targetTime
-            lastUpdate = System.currentTimeMillis()
+            if ((now - lastUpdate) >= (targetTime - delta)) {
+                fps++
+                update.invoke()
+                lastUpdate = System.currentTimeMillis()
+            }
 
             if (lastUpdate - fpsLastTime >= 1000) {
-                Log.d("GameEngine", "FPS: $fps")
+                Log.d("GameEngine", "FPS: $fps    loopTimes: $fps2")
                 fpsLastTime = System.currentTimeMillis()
                 lastFpsCount = fps
                 fps = 0
+                fps2 = 0
             }
-
-            sleep(targetTime - delta)
         }
     }
-
-    fun addTicker(ticker: Ticker) = tickerList.add(ticker)
-    fun removeTicker(ticker: Ticker) = tickerList.remove(ticker)
 
     companion object {
         var instance: GameLoop? = null

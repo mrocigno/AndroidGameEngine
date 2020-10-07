@@ -1,13 +1,14 @@
 package br.com.mrocigno.gameengine.tools
 
-import br.com.mrocigno.gameengine.base.Ticker
+import br.com.mrocigno.gameengine.base.GameAnimationController
+import br.com.mrocigno.gameengine.base.GameEngine
 import java.lang.Long.min
 
 class SimpleTicker(
-    private val durationMillis: Long,
+    engine: GameEngine,
+    durationMillis: Long,
     private val onTick: (fraction: Float) -> Unit
-) : Ticker {
-    private val initialTime = System.currentTimeMillis()
+) : GameAnimationController(engine, durationMillis) {
 
     override fun handle() : Boolean {
         val current = System.currentTimeMillis() - initialTime

@@ -3,10 +3,7 @@ package br.com.mrocigno.gameengine
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.Log
-import br.com.mrocigno.gameengine.base.GameDrawable
-import br.com.mrocigno.gameengine.base.GamePad
-import br.com.mrocigno.gameengine.base.GamePadAxis
-import br.com.mrocigno.gameengine.base.Ticker
+import br.com.mrocigno.gameengine.base.*
 import br.com.mrocigno.gameengine.tools.CyclicalTicker
 import br.com.mrocigno.gameengine.tools.GameLoop
 import br.com.mrocigno.gameengine.utils.toDp
@@ -15,7 +12,7 @@ import kotlin.math.log
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class Persona : GameDrawable(), GamePad.OnMove {
+class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnMove {
 
     override var positionX = 500f.toDp()
     override var positionY = 200f.toDp()
@@ -27,25 +24,17 @@ class Persona : GameDrawable(), GamePad.OnMove {
     private var axis: GamePadAxis = GamePadAxis.NORTHWEST
     private val paint = Paint()
     private var cyclicalTicker = CyclicalTicker(
+        engine,
         10,
         ::onCycleEnd,
         ::move
     )
 
     override fun onMove(radian: Float, velocity: Float, axis: GamePadAxis) {
-        val distance = 7.5f * velocity
+        val distance = 10f * velocity
         this.acresX = distance * cos(radian)
         this.acresY = sqrt(distance.pow(2) - acresX.pow(2))
         this.axis = axis
-
-        registerTick(velocity)
-    }
-
-    private fun registerTick(velocity: Float) {
-        GameLoop.instance?.apply {
-            onCycleEnd()
-            addTicker(cyclicalTicker)
-        }
     }
 
     private fun onCycleEnd() {
@@ -69,13 +58,18 @@ class Persona : GameDrawable(), GamePad.OnMove {
         }
     }
 
+    override fun onDown() {
+        cyclicalTicker.start()
+    }
+
     private fun move(fraction: Float) : Boolean {
-        return acresX == 0f && acresY == 0f
+        return false
     }
 
     override fun onRelease() {
         acresX = 0f
         acresY = 0f
+        cyclicalTicker.stop()
     }
 
     override fun draw(canvas: Canvas) {
