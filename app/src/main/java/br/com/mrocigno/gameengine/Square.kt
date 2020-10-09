@@ -3,6 +3,7 @@ package br.com.mrocigno.gameengine
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.util.Log
 import br.com.mrocigno.gameengine.base.GameDrawable
 import br.com.mrocigno.gameengine.base.GameEngine
 import br.com.mrocigno.gameengine.tools.GameLoop
@@ -41,5 +42,9 @@ class Square(engine: GameEngine, x: Float? = null, color: Int) : GameDrawable(en
             positionY + height,
             paint
         )
+    }
+
+    override fun toString(): String {
+        return "Square $positionX"
     }
 }

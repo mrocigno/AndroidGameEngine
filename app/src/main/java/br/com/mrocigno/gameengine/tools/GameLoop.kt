@@ -3,7 +3,8 @@ package br.com.mrocigno.gameengine.tools
 import android.util.Log
 
 class GameLoop(
-    private val update: () -> Unit
+    private val update: () -> Unit,
+    private val onLoop: () -> Unit
 ) : Thread() {
 
     init {
@@ -24,6 +25,7 @@ class GameLoop(
             val now = System.currentTimeMillis()
 
             fps2++
+            onLoop.invoke()
 
             val delta = (now - lastUpdate) / targetTime
             if ((now - lastUpdate) >= (targetTime - delta)) {
@@ -39,6 +41,8 @@ class GameLoop(
                 fps = 0
                 fps2 = 0
             }
+
+            sleep(1)
         }
     }
 

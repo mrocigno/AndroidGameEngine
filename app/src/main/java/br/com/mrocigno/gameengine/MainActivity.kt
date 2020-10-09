@@ -9,10 +9,11 @@ import br.com.mrocigno.gameengine.base.GameEngine
 import br.com.mrocigno.gameengine.base.GamePad
 import br.com.mrocigno.gameengine.base.GameScene
 import br.com.mrocigno.gameengine.control.DefaultGamePad
+import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
 
 class MainActivity : GameEngine() {
 
-    override val gamePad = DefaultGamePad()
+    override val gamePad = DoubleJoystickGamePad(this)
 
     override val initialScene = TestScene(this)
 
@@ -20,7 +21,7 @@ class MainActivity : GameEngine() {
 
 class TestScene(engine: GameEngine) : GameScene(engine) {
 
-    override val components = listOf(
+    override fun getComponents() = listOf(
         Persona(engine),
         Square(engine = engine, color = Color.BLUE).apply {
             setOnClickListener {
@@ -33,8 +34,4 @@ class TestScene(engine: GameEngine) : GameScene(engine) {
             }
         }
     )
-
-    override fun draw(canvas: Canvas) {
-        components.forEach { it.draw(canvas) }
-    }
 }

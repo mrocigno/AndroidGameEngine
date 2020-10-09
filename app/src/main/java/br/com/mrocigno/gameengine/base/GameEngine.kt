@@ -1,5 +1,6 @@
 package br.com.mrocigno.gameengine.base
 
+import android.graphics.RectF
 import android.os.Bundle
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import androidx.appcompat.app.AppCompatActivity
@@ -14,8 +15,8 @@ abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
     var scene: GameScene? = null
         set(value) {
             field = value?.apply {
+                value.onCreate()
                 game_canvas.scene = value
-                gamePad?.gamePadObservers?.addAll(getControllable(components))
             }
         }
     private val tickerList = mutableListOf<GameAnimationController>()
@@ -23,18 +24,25 @@ abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(FLAG_LAYOUT_NO_LIMITS, FLAG_LAYOUT_NO_LIMITS)
-        GameLoop(::onUpdate).start()
+        GameLoop(
+            ::onUpdate,
+            ::onLoop
+        ).start()
         scene = initialScene
     }
 
     fun addTicker(ticker: GameAnimationController) = tickerList.add(ticker)
     fun removeTicker(ticker: GameAnimationController) = tickerList.remove(ticker)
 
-    open fun onUpdate() {
-        tickerList.removeIf { it.handle() }
+    fun getWindowBounds() = RectF(
+        0f, 0f, game_canvas.width.toFloat(), game_canvas.height.toFloat()
+    )
+
+    private fun onUpdate() {
         game_canvas.invalidate()
     }
 
-    private fun getControllable(components: List<GameDrawable>): Collection<GamePad.OnMove> =
-        components.filterIsInstance(GamePad.OnMove::class.java)
+    private fun onLoop() {
+        tickerList.removeIf { it.handle() }
+    }
 }

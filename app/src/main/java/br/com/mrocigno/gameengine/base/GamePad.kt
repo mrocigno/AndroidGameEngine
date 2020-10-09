@@ -4,46 +4,30 @@ import android.graphics.Canvas
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.CallSuper
-import kotlin.math.atan
-import kotlin.math.min
-import kotlin.math.pow
-import kotlin.math.sqrt
 
-abstract class GamePad(
-    protected val dpadRadius: Float,
-    protected val directionRadius: Float
-) {
+abstract class GamePad {
 
-    val gamePadObservers = mutableListOf<OnMove>()
-
-    protected var centerX = 0f
-    protected var centerY = 0f
-    protected var directionX = 0f
-    protected var directionY = 0f
+    val gamePadObservers = mutableListOf<OnInteract>()
 
     @CallSuper
-    open fun onMove(angle: Float, velocity: Float, axis: GamePadAxis) {
-        gamePadObservers.forEach { it.onMove(angle, velocity, axis) }
-    }
-
-    @CallSuper
-    open fun onRelease() {
-        gamePadObservers.forEach { it.onRelease() }
-    }
-
-    @CallSuper
-    open fun onDown() {
-        gamePadObservers.forEach { it.onDown() }
-    }
+    open fun onInteract(
+        interactionType: String,
+        radian: Float? = null,
+        velocity: Float? = null,
+        axis: GamePadAxis? = null
+    ) = gamePadObservers.forEach { it.onInteract(interactionType, radian, velocity, axis) }
 
     abstract fun onTouchListener(view: View, event: MotionEvent)
 
     abstract fun draw(canvas: Canvas)
 
-    interface OnMove {
-        fun onDown()
-        fun onMove(radian: Float, velocity: Float, axis: GamePadAxis)
-        fun onRelease()
+    interface OnInteract {
+        fun onInteract(
+            interactionType: String,
+            radian: Float? = null,
+            velocity: Float? = null,
+            axis: GamePadAxis? = null
+        )
     }
 }
 

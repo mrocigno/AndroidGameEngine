@@ -12,13 +12,15 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class DefaultGamePad : GamePad(
-    dpadRadius = 70f.toDp(),
-    directionRadius = 25f.toDp()
-) {
+class DefaultGamePad : GamePad() {
 
-    var draw: Boolean = false
-
+    private var centerX = 0f
+    private var centerY = 0f
+    private var directionX = 0f
+    private var directionY = 0f
+    private val dpadRadius = 70f.toDp()
+    private val directionRadius = 25f.toDp()
+    private var draw: Boolean = false
     private val filled = Paint()
     private val stroke = Paint().apply {
         style = Paint.Style.STROKE
@@ -28,16 +30,16 @@ class DefaultGamePad : GamePad(
     override fun onTouchListener(view: View, event: MotionEvent) {
         when(event.action) {
             MotionEvent.ACTION_DOWN -> {
-                this.onDown()
+                this.onInteract(ON_DOWN)
                 setCardinals(event.x, event.y)
                 draw = true
             }
             MotionEvent.ACTION_MOVE -> {
-                this.onMove(getRadian(), getVelocity(), getAxis())
+                this.onInteract(ON_MOVE, getRadian(), getVelocity(), getAxis())
                 this.setDirection(event.x, event.y)
             }
             MotionEvent.ACTION_UP -> {
-                this.onRelease()
+                this.onInteract(ON_RELEASE)
                 draw = false
             }
         }
@@ -103,5 +105,12 @@ class DefaultGamePad : GamePad(
                 directionX, directionY, directionRadius, filled
             )
         }
+    }
+
+    companion object {
+        const val ON_DOWN = "onDown"
+        const val ON_MOVE = "onMove"
+        const val ON_RELEASE = "onRelease"
+
     }
 }
