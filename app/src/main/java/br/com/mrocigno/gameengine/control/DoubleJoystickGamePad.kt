@@ -1,40 +1,18 @@
 package br.com.mrocigno.gameengine.control
 
 import android.graphics.Canvas
-import android.graphics.Paint
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import br.com.mrocigno.gameengine.base.GameEngine
 import br.com.mrocigno.gameengine.base.GamePad
-import br.com.mrocigno.gameengine.utils.toDp
-import kotlin.math.pow
-import kotlin.math.sqrt
+import br.com.mrocigno.gameengine.base.Joystick
 
 class DoubleJoystickGamePad(
     private val engine: GameEngine
 ) : GamePad() {
 
-    private var joyLeftCenterX = 0f
-    private var joyLeftCenterY = 0f
-    private var joyLeftDirectionX = 0f
-    private var joyLeftDirectionY = 0f
-    private var joyLeftPointerId = -1
-
-    private var joyRightCenterX = 0f
-    private var joyRightCenterY = 0f
-    private var joyRightDirectionX = 0f
-    private var joyRightDirectionY = 0f
-    private var joyRightPointerId = -1
-
-    private val dpadRadius = 70f.toDp()
-    private val directionRadius = 25f.toDp()
-
-    private val filled = Paint()
-    private val stroke = Paint().apply {
-        style = Paint.Style.STROKE
-        strokeWidth = 2f.toDp()
-    }
+    private var joystickLeft = Joystick()
+    private var joystickRight = Joystick()
 
     override fun onTouchListener(view: View, event: MotionEvent) {
         when (event.actionMasked) {
@@ -45,16 +23,24 @@ class DoubleJoystickGamePad(
                 processPointerDown(event.actionIndex, event)
             }
             MotionEvent.ACTION_MOVE -> {
-                if (joyLeftPointerId != -1) {
-                    setDirectionLeft(
-                        event.getX(event.findPointerIndex(joyLeftPointerId)),
-                        event.getY(event.findPointerIndex(joyLeftPointerId))
+                if (joystickLeft.hasId) {
+                    joystickLeft.setDirection(
+                        event.getX(event.findPointerIndex(joystickLeft.joystickId)),
+                        event.getY(event.findPointerIndex(joystickLeft.joystickId))
+                    )
+                    this.onInteract(
+                        ON_LEFT_JOYSTICK_MOVE,
+                        joystickLeft.getRadian(), joystickLeft.getVelocity(), joystickLeft.getAxis()
                     )
                 }
-                if (joyRightPointerId != -1) {
-                    setDirectionRight(
-                        event.getX(event.findPointerIndex(joyRightPointerId)),
-                        event.getY(event.findPointerIndex(joyRightPointerId))
+                if (joystickRight.hasId) {
+                    joystickRight.setDirection(
+                        event.getX(event.findPointerIndex(joystickRight.joystickId)),
+                        event.getY(event.findPointerIndex(joystickRight.joystickId))
+                    )
+                    this.onInteract(
+                        ON_RIGHT_JOYSTICK_MOVE,
+                        joystickRight.getRadian(), joystickRight.getVelocity(), joystickRight.getAxis()
                     )
                 }
             }
@@ -68,86 +54,45 @@ class DoubleJoystickGamePad(
     }
 
     override fun draw(canvas: Canvas) {
-        if (joyLeftPointerId != -1) {
-            canvas.drawCircle(
-                joyLeftCenterX, joyLeftCenterY, dpadRadius, stroke
-            )
-
-            canvas.drawCircle(
-                joyLeftDirectionX, joyLeftDirectionY, directionRadius, filled
-            )
-        }
-        if (joyRightPointerId != -1) {
-            canvas.drawCircle(
-                joyRightCenterX, joyRightCenterY, dpadRadius, stroke
-            )
-
-            canvas.drawCircle(
-                joyRightDirectionX, joyRightDirectionY, directionRadius, filled
-            )
-        }
-    }
-
-    private fun setJoystickLeftCenter(centerX: Float, centerY: Float) {
-        joyLeftCenterX = centerX
-        joyLeftCenterY = centerY
-    }
-
-    private fun setDirectionLeft(directionX: Float, directionY: Float) {
-        val deltaX = (joyLeftCenterX - directionX).pow(2)
-        val deltaY = (joyLeftCenterY - directionY).pow(2)
-        val distance = sqrt(deltaX + deltaY)
-
-        var newX = directionX
-        var newY = directionY
-        if (distance >= dpadRadius) {
-            newX = joyLeftCenterX + (directionX - joyLeftCenterX) * (dpadRadius / distance)
-            newY = joyLeftCenterY + (directionY - joyLeftCenterY) * (dpadRadius / distance)
-        }
-
-        this.joyLeftDirectionX = newX
-        this.joyLeftDirectionY = newY
-    }
-
-    private fun setDirectionRight(directionX: Float, directionY: Float) {
-        val deltaX = (joyRightCenterX - directionX).pow(2)
-        val deltaY = (joyRightCenterY - directionY).pow(2)
-        val distance = sqrt(deltaX + deltaY)
-
-        var newX = directionX
-        var newY = directionY
-        if (distance >= dpadRadius) {
-            newX = joyRightCenterX + (directionX - joyRightCenterX) * (dpadRadius / distance)
-            newY = joyRightCenterY + (directionY - joyRightCenterY) * (dpadRadius / distance)
-        }
-
-        this.joyRightDirectionX = newX
-        this.joyRightDirectionY = newY
-    }
-
-    private fun setJoystickRightCenter(centerX: Float, centerY: Float) {
-        joyRightCenterX = centerX
-        joyRightCenterY = centerY
+        if (joystickLeft.draw) joystickLeft.draw(canvas)
+        if (joystickRight.draw) joystickRight.draw(canvas)
     }
 
     private fun processPointerDown(pointerIndex: Int, event: MotionEvent) {
         val (x: Float, y: Float) = event.getX(pointerIndex) to event.getY(pointerIndex)
         if (isOnLeft(x)) {
-            setJoystickLeftCenter(x, y)
-            joyLeftPointerId = event.getPointerId(pointerIndex)
+            this.onInteract(ON_LEFT_JOYSTICK_DOWN)
+            joystickLeft.setCenter(x, y)
+            joystickLeft.joystickId = event.getPointerId(pointerIndex)
         } else {
-            setJoystickRightCenter(x, y)
-            joyRightPointerId = event.getPointerId(pointerIndex)
+            this.onInteract(ON_RIGHT_JOYSTICK_DOWN)
+            joystickRight.setCenter(x, y)
+            joystickRight.joystickId = event.getPointerId(pointerIndex)
         }
     }
 
     private fun processPointerUp(pointerIndex: Int, event: MotionEvent) {
-        if (event.findPointerIndex(joyLeftPointerId) == pointerIndex) {
-            joyLeftPointerId = -1
-        } else {
-            joyRightPointerId = -1
+        if (joystickLeft.matchIndex(pointerIndex, event)) {
+            this.onInteract(ON_LEFT_JOYSTICK_RELEASE)
+            joystickLeft.clearId()
+        }
+        if (joystickRight.matchIndex(pointerIndex, event)) {
+            this.onInteract(ON_RIGHT_JOYSTICK_RELEASE)
+            joystickRight.clearId()
         }
     }
 
     private fun isOnLeft(x: Float) = x < (engine.getWindowBounds().right / 2)
+
+    companion object {
+
+        const val ON_LEFT_JOYSTICK_DOWN = "onLeftJoystickDown"
+        const val ON_LEFT_JOYSTICK_MOVE = "onLeftJoystickMove"
+        const val ON_LEFT_JOYSTICK_RELEASE = "onLeftJoystickRelease"
+
+        const val ON_RIGHT_JOYSTICK_DOWN = "onRightJoystickDown"
+        const val ON_RIGHT_JOYSTICK_MOVE = "onRightJoystickMove"
+        const val ON_RIGHT_JOYSTICK_RELEASE = "onRightJoystickRelease"
+
+    }
 }

@@ -1,114 +1,172 @@
 package br.com.mrocigno.gameengine
 
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.RectF
+import android.graphics.*
+import android.util.Log
 import br.com.mrocigno.gameengine.base.*
-import br.com.mrocigno.gameengine.control.DefaultGamePad
+import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
 import br.com.mrocigno.gameengine.tools.CyclicalTicker
+import br.com.mrocigno.gameengine.tools.SimpleTicker
 import br.com.mrocigno.gameengine.utils.getCollisionInsideNewBounds
 import br.com.mrocigno.gameengine.utils.getCollisionOutsideNewBounds
+import br.com.mrocigno.gameengine.utils.isOutOfWindowBounds
 import br.com.mrocigno.gameengine.utils.toDp
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
+    override val bounds: RectF = RectF(
+        500f.toDp(),
+        200f.toDp(),
+        540f.toDp(),
+        260f.toDp()
+    )
 
-    override var positionX = 500f.toDp()
-    override var positionY = 200f.toDp()
-    override var width = 20f.toDp()
-    override var height = 20f.toDp()
-
-    private var acresX = 0f
-    private var acresY = 0f
-    private var axis: GamePadAxis = GamePadAxis.NORTHWEST
+    private val shoots = mutableListOf<Shoot>()
+    private var joystickHelperMove: JoystickHelper? = null
+    private var joystickHelperAngle: JoystickHelper? = null
     private val paint = Paint()
-    private var cyclicalTicker = CyclicalTicker(
+    private var cyclicalTickerMove = CyclicalTicker(
         engine,
-        10,
-        ::onCycleEnd,
-        ::move
+        20,
+        ::move,
+        ::infinity
+    )
+    private var cyclicalTickerShoots = CyclicalTicker(
+        engine,
+        100,
+        ::shoot,
+        ::infinity
     )
 
     override fun onCollide(hitObject: GameDrawable) {
-        val personaBounds = getBounds().getCollisionOutsideNewBounds(hitObject.getBounds())
-        positionX = personaBounds.centerX()
-        positionY = personaBounds.centerY()
+        bounds.getCollisionOutsideNewBounds(hitObject.bounds)
     }
 
-    override fun getBounds() = RectF(
-        positionX - width,
-        positionY - width,
-        positionX + width,
-        positionY + width
-    )
-
     override fun draw(canvas: Canvas) {
-        canvas.drawCircle(positionX, positionY, width, paint)
+        canvas.drawPath(Path().apply {
+            fillType = Path.FillType.EVEN_ODD
+            moveTo(bounds.left, bounds.bottom)
+            lineTo(bounds.right, bounds.bottom)
+            lineTo(bounds.centerX(), bounds.top)
+            lineTo(bounds.left, bounds.bottom)
+            close()
+            this.transform(Matrix().apply {
+                this.postRotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.centerX(), bounds.centerY() + 10f.toDp())
+            })
+        }, paint)
+        synchronized(shoots) {
+            shoots.removeIf {
+                it.draw(canvas)
+                it.bounds.isOutOfWindowBounds(engine)
+            }
+        }
     }
 
     override fun toString(): String {
         return "Persona"
     }
 
-    private fun onCycleEnd() {
-        val nextRect = when (axis) {
-            GamePadAxis.NORTHEAST -> {
-                getNextPosition(positionX + acresX, positionY - acresY)
-            }
-            GamePadAxis.SOUTHEAST -> {
-                getNextPosition(positionX + acresX, positionY + acresY)
-            }
-            GamePadAxis.NORTHWEST -> {
-                getNextPosition(positionX - acresX, positionY - acresY)
-            }
-            GamePadAxis.SOUTHWEST -> {
-                getNextPosition(positionX - acresX, positionY + acresY)
-            }
+    private fun move() {
+        joystickHelperMove?.nextRect(bounds)?.let {
+            it.getCollisionInsideNewBounds(engine.getWindowBounds())
+            bounds.set(it)
         }
-        nextRect.getCollisionInsideNewBounds(engine.getWindowBounds())
-        positionX = nextRect.centerX()
-        positionY = nextRect.centerY()
     }
 
-    private fun getNextPosition(nextX: Float, nextY: Float) = RectF(
-        nextX - width, nextY - height, nextX + width, nextY + height
-    )
+    private fun shoot() {
+        joystickHelperAngle?.let {
+            val shootBounds = RectF(
+                bounds.centerX(),
+                bounds.centerY(),
+                bounds.centerX() + 10f.toDp(),
+                bounds.centerY() + 20f.toDp()
+            )
+            synchronized(shoots) {
+                shoots.add(Shoot(engine, shootBounds, it))
+            }
+        }
+    }
 
-    private fun move(fraction: Float): Boolean {
+    private fun infinity(fraction: Float): Boolean {
         return false
     }
 
     //region OnInteract implements
     override fun onInteract(
         interactionType: String,
-        radian: Float?,
-        velocity: Float?,
-        axis: GamePadAxis?
+        joystickHelper: JoystickHelper?
     ) {
         when (interactionType) {
-            DefaultGamePad.ON_DOWN -> onDown()
-            DefaultGamePad.ON_MOVE -> onMove(radian!!, velocity!!, axis!!)
-            DefaultGamePad.ON_RELEASE -> onRelease()
+            DoubleJoystickGamePad.ON_LEFT_JOYSTICK_DOWN -> onDown()
+            DoubleJoystickGamePad.ON_LEFT_JOYSTICK_MOVE -> onMove(joystickHelper!!)
+            DoubleJoystickGamePad.ON_LEFT_JOYSTICK_RELEASE -> onRelease()
+            DoubleJoystickGamePad.ON_RIGHT_JOYSTICK_DOWN -> onAngleDown()
+            DoubleJoystickGamePad.ON_RIGHT_JOYSTICK_MOVE -> onAngleMove(joystickHelper!!)
+            DoubleJoystickGamePad.ON_RIGHT_JOYSTICK_RELEASE -> onAngleRelease()
         }
     }
 
-    private fun onMove(radian: Float, velocity: Float, axis: GamePadAxis) {
-        val distance = 15f * velocity
-        this.acresX = distance * cos(radian)
-        this.acresY = sqrt(distance.pow(2) - acresX.pow(2))
-        this.axis = axis
+    private fun onAngleDown() {
+        cyclicalTickerShoots.start()
+    }
+
+    private fun onAngleMove(joystickHelper: JoystickHelper) {
+        if (joystickHelper.velocity < .1) return
+        joystickHelperAngle = joystickHelper
+        joystickHelperAngle?.distance = 15f
+    }
+
+    private fun onAngleRelease() {
+        cyclicalTickerShoots.stop()
     }
 
     private fun onDown() {
-        cyclicalTicker.start()
+        cyclicalTickerMove.start()
+    }
+
+    private fun onMove(joystickHelper: JoystickHelper) {
+        joystickHelperMove = joystickHelper
     }
 
     private fun onRelease() {
-        acresX = 0f
-        acresY = 0f
-        cyclicalTicker.stop()
+        cyclicalTickerMove.stop()
     }
     //endregion
+}
+
+class Shoot(
+    engine: GameEngine,
+    override val bounds: RectF,
+    private val joystickHelper: JoystickHelper
+) : GameDrawable(engine) {
+
+    private val paint = Paint()
+
+    init {
+        val x = bounds.left
+        CyclicalTicker(engine, 10, ::move) {
+            bounds.isOutOfWindowBounds(engine)
+        }.start()
+    }
+
+    private fun move() {
+        joystickHelper.nextRect(bounds).let {
+            bounds.set(it)
+        }
+    }
+
+    override fun draw(canvas: Canvas) {
+        canvas.drawPath(
+            Path().apply {
+                moveTo(bounds.left, bounds.top)
+                lineTo(bounds.left, bounds.bottom)
+                lineTo(bounds.right, bounds.bottom)
+                lineTo(bounds.right, bounds.top)
+                lineTo(bounds.left, bounds.top)
+                close()
+                transform(Matrix().apply {
+                    postRotate(joystickHelper.getDegrees(), bounds.centerX(), bounds.centerY())
+                })
+            },
+            paint
+        )
+    }
 }

@@ -22,7 +22,7 @@ abstract class GameScene(protected val engine: GameEngine){
         components.forEach {
             if (it.hasCollision && collisionObjects.isNotEmpty()) {
                 for (hitObject in collisionObjects) {
-                    if (it != hitObject && matchBounds(it.getBounds(), hitObject.getBounds())) {
+                    if (it != hitObject && matchBounds(it.bounds, hitObject.bounds)) {
                         hitObject.onCollide(it)
                         it.onCollide(hitObject)
                     }
@@ -32,7 +32,9 @@ abstract class GameScene(protected val engine: GameEngine){
         }
     }
 
-    private fun matchBounds(bounds1: RectF, bounds2: RectF): Boolean = bounds1.intersect(bounds2)
+    private fun matchBounds(bounds1: RectF, bounds2: RectF): Boolean = bounds1.intersects(
+        bounds2.left, bounds2.top, bounds2.right, bounds2.bottom
+    )
 
     fun onTouch(event: MotionEvent) {
         components.lastOrNull {

@@ -2,6 +2,7 @@ package br.com.mrocigno.gameengine.utils
 
 import android.graphics.RectF
 import android.util.Log
+import br.com.mrocigno.gameengine.base.GameEngine
 import kotlin.math.abs
 
 fun RectF.getCollisionOutsideNewBounds(comparison: RectF): RectF {
@@ -68,3 +69,6 @@ fun RectF.getCollisionInsideNewBounds(insideOf: RectF): RectF {
     set(left, top, right, bottom)
     return this
 }
+
+fun RectF.isOutOfWindowBounds(engine: GameEngine): Boolean =
+    !engine.getWindowBounds().intersects(left, top, right, bottom)

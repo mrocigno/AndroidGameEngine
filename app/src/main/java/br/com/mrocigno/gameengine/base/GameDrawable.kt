@@ -11,11 +11,7 @@ abstract class GameDrawable(
     val hasCollision: Boolean = true
 ) {
 
-    abstract var positionX: Float
-    abstract var positionY: Float
-    abstract var width: Float
-    abstract var height: Float
-
+    abstract val bounds: RectF
     private var onClick: ((event: MotionEvent) -> Unit)? = null
 
     abstract fun draw(canvas: Canvas)
@@ -30,18 +26,18 @@ abstract class GameDrawable(
     }
 
     open fun clickIsOnBoundaries(event: MotionEvent): Boolean =
-        event.x >= positionX && event.x <= (positionX + width) &&
-        event.y >= positionY && event.y <= (positionY + height)
+        event.x >= bounds.left && event.x <= bounds.right &&
+        event.y >= bounds.top && event.y <= bounds.bottom
 
     @CallSuper
     open fun performTouch(event: MotionEvent) {
         onClick?.invoke(event)
     }
 
-    open fun getBounds() = RectF(
-        positionX,
-        positionY,
-        width + positionX,
-        height + positionY
-    )
+//    open fun getBounds() = RectF(
+//        positionX,
+//        positionY,
+//        width + positionX,
+//        height + positionY
+//    )
 }
