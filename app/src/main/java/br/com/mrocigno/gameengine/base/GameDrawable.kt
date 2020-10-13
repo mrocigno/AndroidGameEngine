@@ -1,20 +1,32 @@
 package br.com.mrocigno.gameengine.base
 
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.RectF
 import android.util.Log
 import android.view.MotionEvent
 import androidx.annotation.CallSuper
+import br.com.mrocigno.gameengine.logical.GameBounds
+import br.com.mrocigno.gameengine.utils.toDp
 
 abstract class GameDrawable(
     protected val engine: GameEngine,
     val hasCollision: Boolean = true
 ) {
 
-    abstract val bounds: RectF
-    private var onClick: ((event: MotionEvent) -> Unit)? = null
+    abstract val bounds: GameBounds
 
-    abstract fun draw(canvas: Canvas)
+    private var onClick: ((event: MotionEvent) -> Unit)? = null
+    private val debugPaint by lazy {
+        Paint().apply {
+            color = Color.MAGENTA
+            style = Paint.Style.STROKE
+            strokeWidth = 1.toDp()
+        }
+    }
+
+    abstract fun onDraw(canvas: Canvas)
 
     @CallSuper
     open fun setOnClickListener(onClick: (event: MotionEvent) -> Unit) {
@@ -34,10 +46,8 @@ abstract class GameDrawable(
         onClick?.invoke(event)
     }
 
-//    open fun getBounds() = RectF(
-//        positionX,
-//        positionY,
-//        width + positionX,
-//        height + positionY
-//    )
+    fun draw(canvas: Canvas) {
+        if (engine.debugMode) canvas.drawPath(bounds.path, debugPaint)
+        onDraw(canvas)
+    }
 }

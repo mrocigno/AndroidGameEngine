@@ -1,57 +1,54 @@
 package br.com.mrocigno.gameengine
 
 import android.graphics.*
-import android.util.Log
 import br.com.mrocigno.gameengine.base.*
 import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
-import br.com.mrocigno.gameengine.tools.CyclicalTicker
-import br.com.mrocigno.gameengine.tools.SimpleTicker
-import br.com.mrocigno.gameengine.utils.getCollisionInsideNewBounds
-import br.com.mrocigno.gameengine.utils.getCollisionOutsideNewBounds
+import br.com.mrocigno.gameengine.logical.GameBounds
+import br.com.mrocigno.gameengine.animation.CyclicalAnimationController
 import br.com.mrocigno.gameengine.utils.isOutOfWindowBounds
 import br.com.mrocigno.gameengine.utils.toDp
 
 class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
-    override val bounds: RectF = RectF(
-        500f.toDp(),
-        200f.toDp(),
-        540f.toDp(),
-        260f.toDp()
-    )
+    override val bounds = GameBounds(
+        0f.toDp(),
+        0f.toDp(),
+        40f.toDp(),
+        60f.toDp()
+    ).apply {
+        setCenter(1260f, 540f)
+    }
 
     private val shoots = mutableListOf<Shoot>()
     private var joystickHelperMove: JoystickHelper? = null
     private var joystickHelperAngle: JoystickHelper? = null
     private val paint = Paint()
-    private var cyclicalTickerMove = CyclicalTicker(
+    private var cyclicalTickerMove = CyclicalAnimationController(
         engine,
         20,
         ::move,
         ::infinity
     )
-    private var cyclicalTickerShoots = CyclicalTicker(
+    private var cyclicalTickerShoots = CyclicalAnimationController(
         engine,
         100,
         ::shoot,
         ::infinity
     )
-
-    override fun onCollide(hitObject: GameDrawable) {
-        bounds.getCollisionOutsideNewBounds(hitObject.bounds)
-    }
-
-    override fun draw(canvas: Canvas) {
-        canvas.drawPath(Path().apply {
+    private val persona = Path()
+        get() = field.apply {
+            reset()
             fillType = Path.FillType.EVEN_ODD
             moveTo(bounds.left, bounds.bottom)
             lineTo(bounds.right, bounds.bottom)
             lineTo(bounds.centerX(), bounds.top)
             lineTo(bounds.left, bounds.bottom)
             close()
-            this.transform(Matrix().apply {
-                this.postRotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.centerX(), bounds.centerY() + 10f.toDp())
-            })
-        }, paint)
+            bounds.rotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.width()/2, bounds.height()/2 + 10f.toDp())
+            transform(bounds.rotationMatrix)
+        }
+
+    override fun onDraw(canvas: Canvas) {
+        canvas.drawPath(persona, paint)
         synchronized(shoots) {
             shoots.removeIf {
                 it.draw(canvas)
@@ -66,19 +63,19 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
 
     private fun move() {
         joystickHelperMove?.nextRect(bounds)?.let {
-            it.getCollisionInsideNewBounds(engine.getWindowBounds())
             bounds.set(it)
         }
     }
 
     private fun shoot() {
         joystickHelperAngle?.let {
-            val shootBounds = RectF(
+            val shootBounds = GameBounds(
                 bounds.centerX(),
                 bounds.centerY(),
-                bounds.centerX() + 10f.toDp(),
-                bounds.centerY() + 20f.toDp()
+                bounds.centerX() + 10.toDp(),
+                bounds.centerY() + 20.toDp()
             )
+            shootBounds.rotate(it.getDegrees(), 5.toDp(), 10.toDp())
             synchronized(shoots) {
                 shoots.add(Shoot(engine, shootBounds, it))
             }
@@ -134,15 +131,14 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
 
 class Shoot(
     engine: GameEngine,
-    override val bounds: RectF,
+    override val bounds: GameBounds,
     private val joystickHelper: JoystickHelper
 ) : GameDrawable(engine) {
 
     private val paint = Paint()
 
     init {
-        val x = bounds.left
-        CyclicalTicker(engine, 10, ::move) {
+        CyclicalAnimationController(engine, 10, ::move) {
             bounds.isOutOfWindowBounds(engine)
         }.start()
     }
@@ -153,19 +149,9 @@ class Shoot(
         }
     }
 
-    override fun draw(canvas: Canvas) {
+    override fun onDraw(canvas: Canvas) {
         canvas.drawPath(
-            Path().apply {
-                moveTo(bounds.left, bounds.top)
-                lineTo(bounds.left, bounds.bottom)
-                lineTo(bounds.right, bounds.bottom)
-                lineTo(bounds.right, bounds.top)
-                lineTo(bounds.left, bounds.top)
-                close()
-                transform(Matrix().apply {
-                    postRotate(joystickHelper.getDegrees(), bounds.centerX(), bounds.centerY())
-                })
-            },
+            bounds.path,
             paint
         )
     }

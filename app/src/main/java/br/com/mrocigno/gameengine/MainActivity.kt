@@ -1,14 +1,8 @@
 package br.com.mrocigno.gameengine
 
-import android.content.Context
-import android.graphics.Canvas
 import android.graphics.Color
 import android.util.Log
-import br.com.mrocigno.gameengine.base.GameDrawable
-import br.com.mrocigno.gameengine.base.GameEngine
-import br.com.mrocigno.gameengine.base.GamePad
-import br.com.mrocigno.gameengine.base.GameScene
-import br.com.mrocigno.gameengine.control.DefaultGamePad
+import br.com.mrocigno.gameengine.base.*
 import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
 
 class MainActivity : GameEngine() {
@@ -17,18 +11,32 @@ class MainActivity : GameEngine() {
 
     override val initialScene = TestScene(this)
 
+    override val debugMode: Boolean = false
+    override val showFpsCount: Boolean = true
+
 }
 
 class TestScene(engine: GameEngine) : GameScene(engine) {
 
+    private val persona = Persona(engine).apply {
+        setOnClickListener {
+            camera.follow = this
+        }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        camera.follow = persona
+    }
+
     override fun getComponents() = listOf(
-        Persona(engine),
+        persona,
         Square(engine = engine, color = Color.BLUE).apply {
             setOnClickListener {
-                this.expandAnimation()
+                camera.moveTo(this.bounds.centerX(), this.bounds.centerY())
             }
         },
-        Square(engine = engine, x = 400f, color = Color.RED).apply {
+        Square(engine = engine, x = 800f, color = Color.RED).apply {
             setOnClickListener {
                 this.expandAnimation()
             }

@@ -21,14 +21,14 @@ abstract class GamePad {
         velocity: Float? = null,
         axis: GamePadAxis? = null
     ) {
-        val teste = radian?.let { rd ->
+        val helper = radian?.let { rd ->
             velocity?.let { vl ->
                 axis?.let { ax ->
                     JoystickHelper(rd, vl, ax)
                 }
             }
         }
-        gamePadObservers.forEach { it.onInteract(interactionType, teste) }
+        gamePadObservers.forEach { it.onInteract(interactionType, helper) }
     }
 
     abstract fun onTouchListener(view: View, event: MotionEvent)
@@ -126,9 +126,11 @@ class Joystick(
             joystickCenterX, joystickCenterY, dpadRadius, stroke
         )
 
-        canvas.drawCircle(
-            joystickDirectionX, joystickDirectionY, directionRadius, filled
-        )
+        if (joystickDirectionX > 0 && joystickDirectionY > 0){
+            canvas.drawCircle(
+                joystickDirectionX, joystickDirectionY, directionRadius, filled
+            )
+        }
     }
 
     fun clearId() {

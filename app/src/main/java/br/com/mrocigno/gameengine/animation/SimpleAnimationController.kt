@@ -1,24 +1,26 @@
-package br.com.mrocigno.gameengine.tools
+package br.com.mrocigno.gameengine.animation
 
+import android.graphics.PointF
+import android.util.Log
 import br.com.mrocigno.gameengine.base.GameAnimationController
 import br.com.mrocigno.gameengine.base.GameEngine
 import java.lang.Long.min
 
-class CyclicalTicker(
+class SimpleAnimationController(
     engine: GameEngine,
     durationMillis: Long,
-    private val onCycleEnd: (() -> Unit)? = null,
-    private val onTick: (fraction: Float) -> Boolean
+    onUpdate: ((fraction: Float) -> Unit)? = null
 ) : GameAnimationController(engine, durationMillis) {
+
+    init {
+        onUpdate?.let { addUpdateListener(it) }
+    }
 
     override fun handle() : Boolean {
         val current = System.currentTimeMillis() - initialTime
         val fraction = min((current * 100) / durationMillis, 100) / 100f
-        val result = onTick.invoke(fraction)
-        if (fraction == 1f) {
-            onCycleEnd?.invoke()
-            initialTime = System.currentTimeMillis()
-        }
-        return result
+        observers.forEach { it.invoke(fraction) }
+        return fraction == 1f
     }
 }
+

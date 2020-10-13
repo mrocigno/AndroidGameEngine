@@ -4,10 +4,20 @@ abstract class GameAnimationController(
     private val engine: GameEngine,
     val durationMillis: Long
 ) {
-    protected var initialTime = System.currentTimeMillis()
+    protected val observers = mutableSetOf<(fraction: Float) -> Unit>()
+    protected var initialTime: Long = 0
     abstract fun handle(): Boolean
 
+    fun addUpdateListener(onUpdate: (fraction: Float) -> Unit) {
+        observers.add(onUpdate)
+    }
+
+    fun removeUpdateListener(onUpdate: (fraction: Float) -> Unit) {
+        observers.remove(onUpdate)
+    }
+
     fun start() {
+        initialTime = System.currentTimeMillis()
         engine.addTicker(this)
     }
 

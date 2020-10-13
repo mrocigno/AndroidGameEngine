@@ -1,6 +1,7 @@
 package br.com.mrocigno.gameengine.control
 
 import android.graphics.Canvas
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import br.com.mrocigno.gameengine.base.GameEngine
@@ -82,7 +83,7 @@ class DoubleJoystickGamePad(
         }
     }
 
-    private fun isOnLeft(x: Float) = x < (engine.getWindowBounds().right / 2)
+    private fun isOnLeft(x: Float) = x < (engine.windowBounds!!.right / 2)
 
     companion object {
 
