@@ -1,6 +1,7 @@
 package br.com.mrocigno.gameengine
 
 import android.graphics.*
+import androidx.core.graphics.toRect
 import br.com.mrocigno.gameengine.base.*
 import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
 import br.com.mrocigno.gameengine.logical.GameBounds
@@ -12,7 +13,7 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
     override val bounds = GameBounds(
         0f.toDp(),
         0f.toDp(),
-        40f.toDp(),
+        60f.toDp(),
         60f.toDp()
     ).apply {
         setCenter(1260f, 540f)
@@ -46,15 +47,25 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
             bounds.rotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.width()/2, bounds.height()/2 + 10f.toDp())
             transform(bounds.rotationMatrix)
         }
+    private val teste by lazy {
+        engine.resources.getDrawable(R.drawable.ic_spaceship_stroke, null).apply {
+            bounds = this@Persona.bounds.toRect()
+        }
+    }
+
 
     override fun onDraw(canvas: Canvas) {
-        canvas.drawPath(persona, paint)
+//        canvas.drawPath(persona, paint)
         synchronized(shoots) {
             shoots.removeIf {
                 it.draw(canvas)
                 it.bounds.isOutOfWindowBounds(engine)
             }
         }
+        canvas.save()
+        canvas.rotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.centerX(), bounds.centerY())
+        teste.draw(canvas)
+        canvas.restore()
     }
 
     override fun toString(): String {
@@ -70,10 +81,10 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
     private fun shoot() {
         joystickHelperAngle?.let {
             val shootBounds = GameBounds(
-                bounds.centerX(),
-                bounds.centerY(),
-                bounds.centerX() + 10.toDp(),
-                bounds.centerY() + 20.toDp()
+                bounds.centerX() - 5.toDp(),
+                bounds.centerY() - 10.toDp(),
+                bounds.centerX() + 5.toDp(),
+                bounds.centerY() + 10.toDp()
             )
             shootBounds.rotate(it.getDegrees(), 5.toDp(), 10.toDp())
             synchronized(shoots) {
