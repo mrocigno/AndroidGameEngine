@@ -1,7 +1,6 @@
 package br.com.mrocigno.gameengine
 
 import android.graphics.Color
-import android.util.Log
 import br.com.mrocigno.gameengine.base.*
 import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
 
@@ -11,7 +10,7 @@ class MainActivity : GameEngine() {
 
     override val initialScene = TestScene(this)
 
-    override val debugMode: Boolean = false
+    override val debugMode: Boolean = true
     override val showFpsCount: Boolean = true
 
 }

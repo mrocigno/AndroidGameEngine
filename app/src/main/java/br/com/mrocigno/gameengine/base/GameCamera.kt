@@ -3,6 +3,8 @@ package br.com.mrocigno.gameengine.base
 import android.graphics.Canvas
 import android.graphics.PointF
 import android.graphics.RectF
+import android.util.Log
+import br.com.mrocigno.gameengine.Persona
 import br.com.mrocigno.gameengine.animation.SimpleAnimationController
 import br.com.mrocigno.gameengine.animation.Tween
 import br.com.mrocigno.gameengine.logical.GameBounds
@@ -17,14 +19,10 @@ class GameCamera(
         set(value) {
             follow?.bounds?.removeObserver(this)
             field = value?.apply {
-                oldLeft = bounds.left
-                oldTop = bounds.top
                 bounds.addObserver(this@GameCamera)
             }
         }
 
-    private var oldLeft = 0f
-    private var oldTop = 0f
     private var tween: Tween<PointF>? = null
         set(value) {
             tween?.close()
@@ -37,7 +35,6 @@ class GameCamera(
 
     fun moveTo(point: PointF, smooth: Boolean = true) = moveTo(point.x, point.y, smooth)
     fun moveTo(cx: Float, cy: Float, smooth: Boolean = true) {
-        follow = null
         if (smooth) {
             tween = Tween(
                 renderBounds.getCenter(),
@@ -58,9 +55,7 @@ class GameCamera(
 
     //region OnBoundsChange implements
     override fun onChange(rect: RectF) {
-        val offsetX = rect.left - oldLeft
-        val offsetY = rect.top - oldTop
-        renderBounds.literalOffset(offsetX, offsetY)
+        moveTo(rect.centerX(), rect.centerY(), false)
     }
     //endregion
 }

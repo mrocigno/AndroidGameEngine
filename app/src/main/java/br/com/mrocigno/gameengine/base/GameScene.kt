@@ -27,14 +27,14 @@ abstract class GameScene(protected val engine: GameEngine) {
     @CallSuper
     open fun draw(canvas: Canvas) {
         components.forEach {
-            if (it.hasCollision && collisionObjects.isNotEmpty()) {
-                for (hitObject in collisionObjects) {
-                    if (it != hitObject && matchBounds(it.bounds, hitObject.bounds)) {
-                        hitObject.onCollide(it)
-                        it.onCollide(hitObject)
-                    }
-                }
-            }
+//            if (it.hasCollision && collisionObjects.isNotEmpty()) {
+//                for (hitObject in collisionObjects) {
+//                    if (it != hitObject && matchBounds(it.bounds, hitObject.bounds)) {
+//                        hitObject.onCollide(it)
+//                        it.onCollide(hitObject)
+//                    }
+//                }
+//            }
             camera.draw(canvas, it)
         }
     }

@@ -4,6 +4,7 @@ import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
+import android.util.Log
 import androidx.core.graphics.rotationMatrix
 import androidx.core.graphics.toRectF
 
@@ -54,9 +55,10 @@ class GameBounds(
     }
 
     fun set(left: Float, top: Float, right: Float, bottom: Float, notifyObservers: Boolean = true) {
-        if (notifyObservers) observers.forEach { it.onChange(RectF(left, top, right, bottom)) }
         super.set(left, top, right, bottom)
+        Log.d("A mano", "aaaa")
         setPoints()
+        if (notifyObservers) observers.forEach { it.onChange(RectF(left, top, right, bottom)) }
     }
 
     fun set(src: RectF, notifyObservers: Boolean = true) {
@@ -89,11 +91,10 @@ class GameBounds(
     fun setCenter(centerX: Float, centerY: Float) {
         val halfWidth = width() / 2
         val halfHeight = height() / 2
-        val newLeft = centerX - halfWidth
-        val newTop = centerY - halfHeight
-        val newRight = centerX + halfWidth
-        val newBottom = centerY + halfHeight
-        set(newLeft, newTop, newRight, newBottom)
+        left = centerX - halfWidth
+        top = centerY - halfHeight
+        right = centerX + halfWidth
+        bottom = centerY + halfHeight
     }
 
     fun rotate(degrees: Float, cx: Float = 0f, cy: Float = 0f) {

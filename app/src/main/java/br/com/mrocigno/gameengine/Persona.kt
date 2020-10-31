@@ -1,6 +1,7 @@
 package br.com.mrocigno.gameengine
 
 import android.graphics.*
+import android.util.Log
 import androidx.core.graphics.toRect
 import br.com.mrocigno.gameengine.base.*
 import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
@@ -13,10 +14,10 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
     override val bounds = GameBounds(
         0f.toDp(),
         0f.toDp(),
-        60f.toDp(),
+        30f.toDp(),
         60f.toDp()
     ).apply {
-        setCenter(1260f, 540f)
+        setCenter(640f, 384f)
     }
 
     private val shoots = mutableListOf<Shoot>()
@@ -39,33 +40,27 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
         get() = field.apply {
             reset()
             fillType = Path.FillType.EVEN_ODD
-            moveTo(bounds.left, bounds.bottom)
-            lineTo(bounds.right, bounds.bottom)
+            moveTo(bounds.left, bounds.top + (bounds.height() * .6f))
             lineTo(bounds.centerX(), bounds.top)
-            lineTo(bounds.left, bounds.bottom)
+            lineTo(bounds.right, bounds.top + (bounds.height() * .6f))
+            lineTo(bounds.left + (bounds.width() * .25f), bounds.bottom - (bounds.width() * .25f))
+            lineTo(bounds.centerX(), bounds.bottom)
+            lineTo(bounds.left + (bounds.width() * .75f), bounds.bottom - (bounds.width() * .25f))
             close()
-            bounds.rotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.width()/2, bounds.height()/2 + 10f.toDp())
+            bounds.rotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.width()/2, bounds.height()/2)
             transform(bounds.rotationMatrix)
         }
-    private val teste by lazy {
-        engine.resources.getDrawable(R.drawable.ic_spaceship_stroke, null).apply {
-            bounds = this@Persona.bounds.toRect()
-        }
-    }
 
 
     override fun onDraw(canvas: Canvas) {
-//        canvas.drawPath(persona, paint)
+        canvas.drawPath(persona, paint)
+        Log.d("A mano", "dddd")
         synchronized(shoots) {
             shoots.removeIf {
                 it.draw(canvas)
                 it.bounds.isOutOfWindowBounds(engine)
             }
         }
-        canvas.save()
-        canvas.rotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.centerX(), bounds.centerY())
-        teste.draw(canvas)
-        canvas.restore()
     }
 
     override fun toString(): String {
@@ -93,9 +88,7 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
         }
     }
 
-    private fun infinity(fraction: Float): Boolean {
-        return false
-    }
+    private fun infinity(fraction: Float) = false
 
     //region OnInteract implements
     override fun onInteract(

@@ -35,7 +35,7 @@ class GameLoop(
             }
 
             if (lastUpdate - fpsLastTime >= 1000) {
-//                Log.d("GameEngine", "FPS: $fps    loopTimes: $fps2")
+                Log.d("GameEngine", "FPS: $fps    loopTimes: $fps2")
                 fpsLastTime = System.currentTimeMillis()
                 lastFpsCount = fps
                 fps = 0

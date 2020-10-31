@@ -2,6 +2,7 @@ package br.com.mrocigno.gameengine.base
 
 import android.graphics.RectF
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import androidx.appcompat.app.AppCompatActivity
@@ -49,9 +50,12 @@ abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
 
     private fun onUpdate() {
         game_canvas.invalidate()
+
     }
 
     private fun onLoop() {
+        Log.d("A mano", "=======")
         tickerList.removeIf { it.handle() }
+        Log.d("A mano", "*******")
     }
 }
