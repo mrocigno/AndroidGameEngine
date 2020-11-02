@@ -3,38 +3,42 @@ package br.com.mrocigno.gameengine.base
 import android.graphics.Canvas
 import android.graphics.PointF
 import android.graphics.RectF
+import android.util.Log
 import android.view.MotionEvent
 import androidx.annotation.CallSuper
+import br.com.mrocigno.gameengine.Shoot
 import br.com.mrocigno.gameengine.logical.GameBounds
 import br.com.mrocigno.gameengine.logical.OnBoundsChange
 import br.com.mrocigno.gameengine.animation.SimpleAnimationController
 import br.com.mrocigno.gameengine.animation.Tween
+import java.util.*
 
-abstract class GameScene(protected val engine: GameEngine) {
+abstract class GameScene(val engine: GameEngine) {
 
-    private lateinit var components: List<GameDrawable>
-    private lateinit var collisionObjects: List<GameDrawable>
-    lateinit var camera: GameCamera
+    private lateinit var components: MutableSet<GameDrawable>
+    private lateinit var collisionObjects: MutableSet<GameDrawable>
+    protected val camera: GameCamera = GameCamera(engine.windowBounds!!.copy(), engine)
 
     @CallSuper
     open fun onCreate() {
         components = getComponents()
-        collisionObjects = components.filter { it.hasCollision }
+        collisionObjects = components.filter { it.hasCollision }.toMutableSet()
         engine.gamePad?.gamePadObservers?.addAll(getControllable())
-        camera = initCamera()
     }
 
     @CallSuper
     open fun draw(canvas: Canvas) {
         components.forEach {
-//            if (it.hasCollision && collisionObjects.isNotEmpty()) {
-//                for (hitObject in collisionObjects) {
-//                    if (it != hitObject && matchBounds(it.bounds, hitObject.bounds)) {
-//                        hitObject.onCollide(it)
-//                        it.onCollide(hitObject)
-//                    }
-//                }
-//            }
+            if (it.hasCollision && collisionObjects.isNotEmpty()) {
+                synchronized(collisionObjects) {
+                    for (hitObject in collisionObjects) {
+                        if (it != hitObject && it.matchBound(hitObject.bounds) && hitObject.matchBound(it.bounds)) {
+                            hitObject.onCollide(it)
+                            it.onCollide(hitObject)
+                        }
+                    }
+                }
+            }
             camera.draw(canvas, it)
         }
     }
@@ -47,13 +51,19 @@ abstract class GameScene(protected val engine: GameEngine) {
         }
     }
 
-    private fun matchBounds(bounds1: RectF, bounds2: RectF): Boolean = bounds1.intersects(
-        bounds2.left, bounds2.top, bounds2.right, bounds2.bottom
-    )
+    fun addCollideObject(drawable: GameDrawable) {
+        if (drawable.hasCollision) synchronized(collisionObjects) {
+            collisionObjects.add(drawable)
+        }
+    }
 
-    protected abstract fun getComponents(): List<GameDrawable>
+    fun removeCollideObject(drawable: GameDrawable) {
+        if (drawable.hasCollision) synchronized(collisionObjects) {
+            collisionObjects.add(drawable)
+        }
+    }
 
-    protected open fun initCamera(): GameCamera = GameCamera(engine.windowBounds!!.copy(), engine)
+    protected abstract fun getComponents(): MutableSet<GameDrawable>
 
     private fun getControllable(): Collection<GamePad.OnInteract> =
         components.filterIsInstance(GamePad.OnInteract::class.java)

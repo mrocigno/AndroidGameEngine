@@ -7,10 +7,9 @@ import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
 class MainActivity : GameEngine() {
 
     override val gamePad = DoubleJoystickGamePad(this)
+    override fun initialScene() = TestScene(this)
 
-    override val initialScene = TestScene(this)
-
-    override val debugMode: Boolean = true
+    override val debugMode: Boolean = false
     override val showFpsCount: Boolean = true
 
 }
@@ -23,22 +22,27 @@ class TestScene(engine: GameEngine) : GameScene(engine) {
         }
     }
 
+    private val aaa = Square(
+        engine, x = 800f,
+        color = Color.RED
+    ).apply {
+        setOnClickListener {
+            this.bounds.scale = (1.5f)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         camera.follow = persona
     }
 
-    override fun getComponents() = listOf(
+    override fun getComponents() = mutableSetOf(
         persona,
-        Square(engine = engine, color = Color.BLUE).apply {
+        Square(engine, color = Color.BLUE).apply {
             setOnClickListener {
-                camera.moveTo(this.bounds.centerX(), this.bounds.centerY())
+                aaa.bounds.scale = (.5f)
             }
         },
-        Square(engine = engine, x = 800f, color = Color.RED).apply {
-            setOnClickListener {
-                this.expandAnimation()
-            }
-        }
+        aaa
     )
 }

@@ -7,6 +7,7 @@ import android.graphics.RectF
 import android.util.Log
 import androidx.core.graphics.rotationMatrix
 import androidx.core.graphics.toRectF
+import kotlin.math.abs
 
 class GameBounds(
     left: Float,
@@ -21,6 +22,10 @@ class GameBounds(
     var offsetX = 0f
         private set
     var offsetY = 0f
+        private set
+    var insetX = 0f
+        private set
+    var insetY = 0f
         private set
     val path = Path()
         get() = field.apply {
@@ -54,29 +59,29 @@ class GameBounds(
         setPoints()
     }
 
+    override fun set(left: Float, top: Float, right: Float, bottom: Float) { set(left, top, right, bottom, true) }
     fun set(left: Float, top: Float, right: Float, bottom: Float, notifyObservers: Boolean = true) {
         super.set(left, top, right, bottom)
-        Log.d("A mano", "aaaa")
         setPoints()
-        if (notifyObservers) observers.forEach { it.onChange(RectF(left, top, right, bottom)) }
+        if (notifyObservers) observers.forEach { it.onChange(this) }
     }
 
+    override fun set(src: RectF) { set(src, true) }
     fun set(src: RectF, notifyObservers: Boolean = true) {
         set(src.left, src.top, src.right, src.bottom, notifyObservers)
     }
 
+    override fun set(src: Rect) { set(src, true) }
     fun set(src: Rect, notifyObservers: Boolean = true) {
         val rectF = src.toRectF()
         set(rectF.left, rectF.top, rectF.right, rectF.bottom, notifyObservers)
     }
 
-    override fun set(src: Rect) { set(src, true) }
-    override fun set(src: RectF) { set(src, true) }
-    override fun set(left: Float, top: Float, right: Float, bottom: Float) { set(left, top, right, bottom, true) }
-
     fun addObserver(observer: OnBoundsChange) {
         observers.add(observer)
     }
+
+    fun getCenter() = PointF(centerX(), centerY())
 
     fun removeObserver(observer: OnBoundsChange) {
         observers.remove(observer)
@@ -85,7 +90,11 @@ class GameBounds(
     fun intersects(bounds: GameBounds) =
         super.intersects(bounds.left, bounds.top, bounds.right, bounds.bottom)
 
-    fun getCenter() = PointF(centerX(), centerY())
+    override fun inset(dx: Float, dy: Float) {
+        insetX = dx - insetX
+        insetY = dy - insetY
+        super.inset(insetX, insetY)
+    }
 
     fun setCenter(point: PointF) = setCenter(point.x, point.y)
     fun setCenter(centerX: Float, centerY: Float) {
@@ -96,6 +105,23 @@ class GameBounds(
         right = centerX + halfWidth
         bottom = centerY + halfHeight
     }
+
+    var scale = 1f
+        set(value) {
+            val originalWidth = width() / scale
+            val originalHeight = height() / scale
+
+            val scaleWidthDiff = (originalWidth * value) - width()
+            val scaleHeightDiff = (originalHeight * value) - height()
+
+            set(
+                left = left - (scaleWidthDiff / 2),
+                top = top - (scaleHeightDiff / 2),
+                right = right + (scaleWidthDiff / 2),
+                bottom = bottom + (scaleHeightDiff / 2)
+            )
+            field = value
+        }
 
     fun rotate(degrees: Float, cx: Float = 0f, cy: Float = 0f) {
         rotationDegrees = degrees
@@ -114,9 +140,7 @@ class GameBounds(
         southwestPoint.set(pts[6], pts[7])
     }
 
-    fun pathIntersect(src: Path) {
-        path.op(src, Path.Op.INTERSECT)
-    }
+    fun pathIntersect(src: Path) = path.op(src, Path.Op.INTERSECT)
 
     fun copy(): GameBounds = super.clone() as GameBounds
 

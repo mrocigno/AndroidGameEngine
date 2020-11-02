@@ -47,18 +47,18 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
             lineTo(bounds.centerX(), bounds.bottom)
             lineTo(bounds.left + (bounds.width() * .75f), bounds.bottom - (bounds.width() * .25f))
             close()
-            bounds.rotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.width()/2, bounds.height()/2)
             transform(bounds.rotationMatrix)
         }
 
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawPath(persona, paint)
-        Log.d("A mano", "dddd")
         synchronized(shoots) {
             shoots.removeIf {
                 it.draw(canvas)
-                it.bounds.isOutOfWindowBounds(engine)
+                (it.bounds.isOutOfWindowBounds(engine) || it.remove).also { remove ->
+                    if (remove) scene?.removeCollideObject(it)
+                }
             }
         }
     }
@@ -82,8 +82,10 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
                 bounds.centerY() + 10.toDp()
             )
             shootBounds.rotate(it.getDegrees(), 5.toDp(), 10.toDp())
+            val shoot = Shoot(engine, shootBounds, it)
             synchronized(shoots) {
-                shoots.add(Shoot(engine, shootBounds, it))
+                shoots.add(shoot)
+                scene?.addCollideObject(shoot)
             }
         }
     }
@@ -113,6 +115,8 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
         if (joystickHelper.velocity < .1) return
         joystickHelperAngle = joystickHelper
         joystickHelperAngle?.distance = 15f
+
+        bounds.rotate(joystickHelperAngle?.getDegrees() ?: 0f, bounds.width()/2, bounds.height()/2)
     }
 
     private fun onAngleRelease() {
@@ -140,6 +144,7 @@ class Shoot(
 ) : GameDrawable(engine) {
 
     private val paint = Paint()
+    var remove = false
 
     init {
         CyclicalAnimationController(engine, 10, ::move) {
@@ -158,5 +163,9 @@ class Shoot(
             bounds.path,
             paint
         )
+    }
+
+    fun dissolve() {
+        remove = true
     }
 }

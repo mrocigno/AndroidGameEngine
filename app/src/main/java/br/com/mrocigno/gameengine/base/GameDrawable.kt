@@ -16,6 +16,7 @@ abstract class GameDrawable(
 ) {
 
     abstract val bounds: GameBounds
+    val scene get() = engine.scene
 
     private var onClick: ((event: MotionEvent) -> Unit)? = null
     private val debugPaint by lazy {
@@ -34,7 +35,7 @@ abstract class GameDrawable(
     }
 
     open fun onCollide(hitObject: GameDrawable) {
-        Log.d("GameEngine", "Collide with: $hitObject")
+        Log.d("GameEngine", "$this collide with: $hitObject")
     }
 
     open fun clickIsOnBoundaries(event: MotionEvent): Boolean =
@@ -50,4 +51,6 @@ abstract class GameDrawable(
         if (engine.debugMode) canvas.drawPath(bounds.path, debugPaint)
         onDraw(canvas)
     }
+
+    fun matchBound(bounds: GameBounds) = this.bounds.intersects(bounds)
 }

@@ -2,6 +2,7 @@ package br.com.mrocigno.gameengine.animation
 
 import br.com.mrocigno.gameengine.base.GameAnimationController
 import br.com.mrocigno.gameengine.base.GameEngine
+import br.com.mrocigno.gameengine.base.GameScene
 import java.lang.Long.min
 
 class CyclicalAnimationController(

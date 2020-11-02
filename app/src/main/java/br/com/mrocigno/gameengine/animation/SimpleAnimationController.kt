@@ -4,6 +4,7 @@ import android.graphics.PointF
 import android.util.Log
 import br.com.mrocigno.gameengine.base.GameAnimationController
 import br.com.mrocigno.gameengine.base.GameEngine
+import br.com.mrocigno.gameengine.base.GameScene
 import java.lang.Long.min
 
 class SimpleAnimationController(
@@ -20,7 +21,8 @@ class SimpleAnimationController(
         val current = System.currentTimeMillis() - initialTime
         val fraction = min((current * 100) / durationMillis, 100) / 100f
         observers.forEach { it.invoke(fraction) }
-        return fraction == 1f
+        isRunning = fraction == 1f
+        return isRunning
     }
 }
 

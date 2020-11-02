@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.activity_game.*
 abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
 
     abstract val gamePad: GamePad?
-    abstract val initialScene: GameScene
+    abstract fun initialScene(): GameScene
     open val debugMode = false
     open val showFpsCount = false
     val lastFpsCount get() = loop.lastFpsCount
@@ -45,17 +45,14 @@ abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
 
     fun onMeasured(width: Int, height: Int) {
         windowBounds = GameBounds(0f, 0f, width.toFloat(), height.toFloat())
-        scene = initialScene
+        scene = initialScene()
     }
 
     private fun onUpdate() {
         game_canvas.invalidate()
-
     }
 
     private fun onLoop() {
-        Log.d("A mano", "=======")
         tickerList.removeIf { it.handle() }
-        Log.d("A mano", "*******")
     }
 }

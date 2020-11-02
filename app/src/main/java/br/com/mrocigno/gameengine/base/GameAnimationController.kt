@@ -4,6 +4,8 @@ abstract class GameAnimationController(
     private val engine: GameEngine,
     val durationMillis: Long
 ) {
+
+    var isRunning = false
     protected val observers = mutableSetOf<(fraction: Float) -> Unit>()
     protected var initialTime: Long = 0
     abstract fun handle(): Boolean
@@ -19,6 +21,7 @@ abstract class GameAnimationController(
     fun start() {
         initialTime = System.currentTimeMillis()
         engine.addTicker(this)
+        isRunning = true
     }
 
     fun stop() {
