@@ -10,13 +10,10 @@ import androidx.annotation.CallSuper
 import br.com.mrocigno.gameengine.logical.GameBounds
 import br.com.mrocigno.gameengine.utils.toDp
 
-abstract class GameDrawable(
-    protected val engine: GameEngine,
-    val hasCollision: Boolean = true
-) {
+abstract class GameDrawable(protected val engine: GameEngine) {
 
     abstract val bounds: GameBounds
-    val scene get() = engine.scene
+    val scene get() = engine.scene!!
 
     private var onClick: ((event: MotionEvent) -> Unit)? = null
     private val debugPaint by lazy {
@@ -34,10 +31,6 @@ abstract class GameDrawable(
         this.onClick = onClick
     }
 
-    open fun onCollide(hitObject: GameDrawable) {
-        Log.d("GameEngine", "$this collide with: $hitObject")
-    }
-
     open fun clickIsOnBoundaries(event: MotionEvent): Boolean =
         event.x >= bounds.left && event.x <= bounds.right &&
         event.y >= bounds.top && event.y <= bounds.bottom
@@ -51,6 +44,4 @@ abstract class GameDrawable(
         if (engine.debugMode) canvas.drawPath(bounds.path, debugPaint)
         onDraw(canvas)
     }
-
-    fun matchBound(bounds: GameBounds) = this.bounds.intersects(bounds)
 }

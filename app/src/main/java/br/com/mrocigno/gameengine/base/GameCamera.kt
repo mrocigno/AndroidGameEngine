@@ -11,7 +11,7 @@ import br.com.mrocigno.gameengine.logical.GameBounds
 import br.com.mrocigno.gameengine.logical.OnBoundsChange
 
 class GameCamera(
-    private val renderBounds: GameBounds,
+    val renderBounds: GameBounds,
     private val engine: GameEngine
 ): OnBoundsChange {
 

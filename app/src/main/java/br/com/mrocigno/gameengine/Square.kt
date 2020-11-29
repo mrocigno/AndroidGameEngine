@@ -1,18 +1,17 @@
 package br.com.mrocigno.gameengine
 
 import android.graphics.*
-import android.util.Log
 import br.com.mrocigno.gameengine.animation.SimpleAnimationController
 import br.com.mrocigno.gameengine.animation.Tween
 import br.com.mrocigno.gameengine.base.GameAnimationController
 import br.com.mrocigno.gameengine.base.GameDrawable
 import br.com.mrocigno.gameengine.base.GameEngine
-import br.com.mrocigno.gameengine.base.GameScene
+import br.com.mrocigno.gameengine.components.BruisedBox
 import br.com.mrocigno.gameengine.logical.GameBounds
 import br.com.mrocigno.gameengine.utils.getCollisionOutsideNewBounds
 import br.com.mrocigno.gameengine.utils.toDp
 
-class Square(engine: GameEngine, x: Float? = null, color: Int) : GameDrawable(engine) {
+class Square(engine: GameEngine, x: Float? = null, color: Int) : BruisedBox(engine) {
 
     private val hitAnimationController: GameAnimationController = SimpleAnimationController(engine, 50) {
         paint.color = colorTransition.currentValue
@@ -20,6 +19,7 @@ class Square(engine: GameEngine, x: Float? = null, color: Int) : GameDrawable(en
     }
     private val colorTransition = Tween(Color.GRAY, color).sync(hitAnimationController)
     private val expand = Tween(1.2f, 1f).sync(hitAnimationController)
+    override var life: Int = 100
 
     override val bounds = GameBounds(
         x ?: 100f.toDp(),
@@ -30,10 +30,6 @@ class Square(engine: GameEngine, x: Float? = null, color: Int) : GameDrawable(en
 
     private val paint = Paint().apply {
         this.color = color
-    }
-
-    fun expandAnimation() {
-        bounds.rotate(30f, bounds.width()/2, bounds.height() /2)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -51,6 +47,13 @@ class Square(engine: GameEngine, x: Float? = null, color: Int) : GameDrawable(en
                 hitObject.dissolve()
                 hitAnimation()
             }
+        }
+    }
+
+    override fun whenGettingHurt(power: Int) {
+        life -= power
+        if (life <= 0) {
+            scene.removeComponent(this)
         }
     }
 

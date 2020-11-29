@@ -17,6 +17,8 @@ class GameBounds(
 ) : RectF(left, top, right, bottom), Cloneable {
 
     val rotationMatrix = rotationMatrix(0f, 0f, 0f)
+    val globalPosition: RectF
+        get() = RectF(left - offsetX, top - offsetY, right - offsetX, bottom - offsetY)
     var rotationDegrees = 0f
         private set
     var offsetX = 0f
@@ -49,13 +51,6 @@ class GameBounds(
         offsetX += acresX
         offsetY += acresY
         super.offset(acresX, acresY)
-        setPoints()
-    }
-
-    fun literalOffset(dx: Float, dy: Float) {
-        offsetX += dx
-        offsetY += dy
-        super.offset(dx, dy)
         setPoints()
     }
 

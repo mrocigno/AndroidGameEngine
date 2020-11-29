@@ -76,4 +76,4 @@ fun RectF.getCollisionInsideNewBounds(insideOf: RectF): RectF {
 }
 
 fun RectF.isOutOfWindowBounds(engine: GameEngine): Boolean =
-    !engine.windowBounds!!.intersects(left, top, right, bottom)
+    engine.scene?.camera?.renderBounds?.intersects(left, top, right, bottom) == false

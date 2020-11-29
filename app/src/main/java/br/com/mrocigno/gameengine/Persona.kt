@@ -1,16 +1,16 @@
 package br.com.mrocigno.gameengine
 
 import android.graphics.*
-import android.util.Log
-import androidx.core.graphics.toRect
 import br.com.mrocigno.gameengine.base.*
 import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
 import br.com.mrocigno.gameengine.logical.GameBounds
 import br.com.mrocigno.gameengine.animation.CyclicalAnimationController
+import br.com.mrocigno.gameengine.components.CollisionBox
+import br.com.mrocigno.gameengine.components.HurtBox
 import br.com.mrocigno.gameengine.utils.isOutOfWindowBounds
 import br.com.mrocigno.gameengine.utils.toDp
 
-class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
+class Persona(engine: GameEngine) : CollisionBox(engine), GamePad.OnInteract {
     override val bounds = GameBounds(
         0f.toDp(),
         0f.toDp(),
@@ -20,7 +20,6 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
         setCenter(640f, 384f)
     }
 
-    private val shoots = mutableListOf<Shoot>()
     private var joystickHelperMove: JoystickHelper? = null
     private var joystickHelperAngle: JoystickHelper? = null
     private val paint = Paint()
@@ -53,14 +52,6 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawPath(persona, paint)
-        synchronized(shoots) {
-            shoots.removeIf {
-                it.draw(canvas)
-                (it.bounds.isOutOfWindowBounds(engine) || it.remove).also { remove ->
-                    if (remove) scene?.removeCollideObject(it)
-                }
-            }
-        }
     }
 
     override fun toString(): String {
@@ -75,18 +66,16 @@ class Persona(engine: GameEngine) : GameDrawable(engine), GamePad.OnInteract {
 
     private fun shoot() {
         joystickHelperAngle?.let {
+            val globalPosition = bounds.globalPosition
             val shootBounds = GameBounds(
-                bounds.centerX() - 5.toDp(),
-                bounds.centerY() - 10.toDp(),
-                bounds.centerX() + 5.toDp(),
-                bounds.centerY() + 10.toDp()
+                globalPosition.centerX() - 5.toDp(),
+                globalPosition.centerY() - 10.toDp(),
+                globalPosition.centerX() + 5.toDp(),
+                globalPosition.centerY() + 10.toDp()
             )
             shootBounds.rotate(it.getDegrees(), 5.toDp(), 10.toDp())
             val shoot = Shoot(engine, shootBounds, it)
-            synchronized(shoots) {
-                shoots.add(shoot)
-                scene?.addCollideObject(shoot)
-            }
+            scene.addComponent(shoot)
         }
     }
 
@@ -141,14 +130,17 @@ class Shoot(
     engine: GameEngine,
     override val bounds: GameBounds,
     private val joystickHelper: JoystickHelper
-) : GameDrawable(engine) {
+) : HurtBox(engine) {
 
     private val paint = Paint()
     var remove = false
+    override var power: Int = 20
 
     init {
         CyclicalAnimationController(engine, 10, ::move) {
-            bounds.isOutOfWindowBounds(engine)
+            (bounds.globalPosition.isOutOfWindowBounds(engine) || remove).also {
+                if (it) scene.removeComponent(this)
+            }
         }.start()
     }
 

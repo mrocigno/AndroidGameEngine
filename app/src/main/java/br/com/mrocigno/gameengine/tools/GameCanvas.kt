@@ -37,7 +37,6 @@ class GameCanvas @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        Log.d("Teste", "${right/2}  ${bottom/2}")
         engine.onMeasured(right, bottom)
     }
 
