@@ -1,6 +1,8 @@
 package br.com.mrocigno.gameengine
 
 import android.graphics.*
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.VectorDrawable
 import br.com.mrocigno.gameengine.base.*
 import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
 import br.com.mrocigno.gameengine.logical.GameBounds

@@ -1,10 +1,7 @@
 package br.com.mrocigno.gameengine.animation
 
-import android.graphics.PointF
-import android.util.Log
 import br.com.mrocigno.gameengine.base.GameAnimationController
 import br.com.mrocigno.gameengine.base.GameEngine
-import br.com.mrocigno.gameengine.base.GameScene
 import java.lang.Long.min
 
 class SimpleAnimationController(
@@ -25,4 +22,3 @@ class SimpleAnimationController(
         return isRunning
     }
 }
-

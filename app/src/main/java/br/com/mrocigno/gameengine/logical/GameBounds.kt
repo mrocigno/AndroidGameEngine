@@ -4,10 +4,8 @@ import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
-import android.util.Log
 import androidx.core.graphics.rotationMatrix
 import androidx.core.graphics.toRectF
-import kotlin.math.abs
 
 class GameBounds(
     left: Float,

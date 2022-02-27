@@ -8,7 +8,7 @@ import br.com.mrocigno.gameengine.base.GameDrawable
 import br.com.mrocigno.gameengine.base.GameEngine
 import br.com.mrocigno.gameengine.components.BruisedBox
 import br.com.mrocigno.gameengine.logical.GameBounds
-import br.com.mrocigno.gameengine.utils.getCollisionOutsideNewBounds
+import br.com.mrocigno.gameengine.utils.avoidCollisionWith
 import br.com.mrocigno.gameengine.utils.toDp
 
 class Square(engine: GameEngine, x: Float? = null, color: Int) : BruisedBox(engine) {
@@ -42,7 +42,7 @@ class Square(engine: GameEngine, x: Float? = null, color: Int) : BruisedBox(engi
     override fun onCollide(hitObject: GameDrawable) {
         super.onCollide(hitObject)
         when(hitObject) {
-            is Persona -> hitObject.bounds.getCollisionOutsideNewBounds(bounds)
+            is Persona -> hitObject.bounds avoidCollisionWith bounds
             is Shoot -> {
                 hitObject.dissolve()
                 hitAnimation()

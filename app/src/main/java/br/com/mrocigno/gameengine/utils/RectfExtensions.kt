@@ -2,11 +2,12 @@ package br.com.mrocigno.gameengine.utils
 
 import android.graphics.RectF
 import android.util.Log
+import androidx.core.graphics.toRect
 import br.com.mrocigno.gameengine.base.GameEngine
 import br.com.mrocigno.gameengine.logical.GameBounds
 import kotlin.math.abs
 
-fun GameBounds.getCollisionOutsideNewBounds(comparison: RectF): RectF {
+infix fun GameBounds.avoidCollisionWith(comparison: RectF) {
     val left = abs(comparison.left - this.right)
     val top = abs(comparison.top - this.bottom)
     val right = abs(comparison.right - this.left)
@@ -45,10 +46,9 @@ fun GameBounds.getCollisionOutsideNewBounds(comparison: RectF): RectF {
             false
         )
     }
-    return this
 }
 
-fun RectF.getCollisionInsideNewBounds(insideOf: RectF): RectF {
+infix fun GameBounds.stayInside(insideOf: RectF): RectF {
     var left = this.left
     var top = this.top
     var right = this.right
@@ -71,7 +71,7 @@ fun RectF.getCollisionInsideNewBounds(insideOf: RectF): RectF {
         bottom = insideOf.bottom
     }
 
-    set(left, top, right, bottom)
+    set(left, top, right, bottom, false)
     return this
 }
 

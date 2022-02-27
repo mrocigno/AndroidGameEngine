@@ -3,8 +3,9 @@ package br.com.mrocigno.gameengine
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import br.com.mrocigno.gameengine.base.*
-import br.com.mrocigno.gameengine.components.Floor
+import br.com.mrocigno.gameengine.base.GameDrawable
+import br.com.mrocigno.gameengine.base.GameEngine
+import br.com.mrocigno.gameengine.base.GameScene
 import br.com.mrocigno.gameengine.control.DoubleJoystickGamePad
 import br.com.mrocigno.gameengine.logical.GameBounds
 import br.com.mrocigno.gameengine.utils.toDp
@@ -16,7 +17,6 @@ class MainActivity : GameEngine() {
 
     override val debugMode: Boolean = true
     override val showFpsCount: Boolean = true
-
 }
 
 class TestScene(engine: GameEngine) : GameScene(engine) {
@@ -28,20 +28,22 @@ class TestScene(engine: GameEngine) : GameScene(engine) {
     }
 
     private val aaa = Square(
-        engine, x = 800f,
+        engine = engine,
+        x = 800f,
         color = Color.RED
     ).apply {
         setOnClickListener {
-            this.bounds.scale = (1.5f)
+            this.bounds.scale = 1.5f
         }
     }
 
     override fun onCreate() {
         super.onCreate()
         camera.follow = persona
+        camera.moveTo(persona.bounds)
     }
 
-    override fun getComponents() = setOf<GameDrawable>(
+    override fun getComponents() = setOf(
         TestFloor(engine),
         persona,
         Square(engine, color = Color.BLUE).apply {
@@ -53,7 +55,7 @@ class TestScene(engine: GameEngine) : GameScene(engine) {
     )
 }
 
-class TestFloor(engine: GameEngine) : Floor(engine) {
+class TestFloor(engine: GameEngine) : GameDrawable(engine) {
 
     private val paint = Paint().apply {
         style = Paint.Style.STROKE
@@ -67,5 +69,4 @@ class TestFloor(engine: GameEngine) : Floor(engine) {
     override fun onDraw(canvas: Canvas) {
         canvas.drawPath(bounds.path, paint)
     }
-
 }

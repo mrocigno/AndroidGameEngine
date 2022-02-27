@@ -13,7 +13,6 @@ class Tween<T>(
     var currentValue: T = begin
     private val argbEvaluator by lazy { ArgbEvaluator() }
 
-    private lateinit var syncWith: GameAnimationController
     private val observer =  { it: Float ->
         process(it)
     }
@@ -21,6 +20,10 @@ class Tween<T>(
     fun sync(controller: GameAnimationController): Tween<T> {
         controller.addUpdateListener(observer)
         return this
+    }
+
+    fun stop(controller: GameAnimationController) {
+        controller.removeUpdateListener(observer)
     }
 
     private fun process(fraction: Float) {
@@ -37,12 +40,6 @@ class Tween<T>(
             (begin is Int && end is Int) -> {
                 currentValue = argbEvaluator.evaluate(fraction, begin, end) as T
             }
-        }
-    }
-
-    fun close() {
-        if (this::syncWith.isInitialized) {
-            syncWith.removeUpdateListener(observer)
         }
     }
 }
