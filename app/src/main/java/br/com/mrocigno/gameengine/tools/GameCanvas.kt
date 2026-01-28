@@ -40,14 +40,12 @@ class GameCanvas @JvmOverloads constructor(
         engine.onMeasured(right, bottom)
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas?.let {
-            scene?.draw(canvas)
-            engine.gamePad?.draw(canvas)
-            if (engine.showFpsCount)
-                canvas.drawText("${engine.lastFpsCount}", 30.toDp(), 30.toDp(), paint)
-        }
+        scene?.draw(canvas)
+        engine.gamePad?.draw(canvas)
+        if (engine.showFpsCount)
+            canvas.drawText("${engine.lastFpsCount}", 30.toDp(), 30.toDp(), paint)
     }
 }
 

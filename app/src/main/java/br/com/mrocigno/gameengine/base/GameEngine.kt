@@ -1,15 +1,13 @@
 package br.com.mrocigno.gameengine.base
 
-import android.graphics.RectF
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import androidx.appcompat.app.AppCompatActivity
-import br.com.mrocigno.gameengine.tools.GameLoop
 import br.com.mrocigno.gameengine.R
 import br.com.mrocigno.gameengine.logical.GameBounds
-import kotlinx.android.synthetic.main.activity_game.*
+import br.com.mrocigno.gameengine.tools.GameCanvas
+import br.com.mrocigno.gameengine.tools.GameLoop
 
 abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
 
@@ -17,13 +15,16 @@ abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
     abstract fun initialScene(): GameScene
     open val debugMode = false
     open val showFpsCount = false
+    val gameCanvas: GameCanvas by lazy {
+        findViewById<GameCanvas>(R.id.game_canvas)
+    }
     val lastFpsCount get() = loop.lastFpsCount
     var windowBounds: GameBounds? = null
     var scene: GameScene? = null
         set(value) {
             field = value?.apply {
                 value.onCreate()
-                game_canvas.scene = value
+                gameCanvas.scene = value
             }
         }
 
@@ -49,7 +50,7 @@ abstract class GameEngine : AppCompatActivity(R.layout.activity_game) {
     }
 
     private fun onUpdate() {
-        game_canvas.invalidate()
+        gameCanvas.invalidate()
     }
 
     private fun onLoop() {
